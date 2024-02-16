@@ -27,6 +27,6 @@ jobs:
       - name: Build Image
         run: podman load --input $(nix build .#image --print-out-paths)
       - name: Tag Image
-        run: podman tag localhost/${{ IMAGE_NAME }} ${{ IMAGE_REGISTRY }}/${{ IMAGE_NAME }}:${{ TAG }}
+        run: podman tag localhost/${{ env.IMAGE_NAME }} ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
       - name: Push Image
-        run: podman push ${{ IMAGE_REGISTRY }}/${{ IMAGE_NAME }}:${{ TAG }}
+        run: podman push ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
