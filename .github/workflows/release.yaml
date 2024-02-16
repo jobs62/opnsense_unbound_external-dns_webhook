@@ -7,7 +7,6 @@ env:
   REGISTRY_PASSWORD: ${{ github.token }}
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_NAME: opnsense_unbound_external-dns_webhook
-  TAG: ${{ github.ref }}
 
 jobs:
   build:
@@ -26,7 +25,5 @@ jobs:
 
       - name: Build Image
         run: podman load --input $(nix build .#image --print-out-paths)
-      - name: Tag Image
-        run: podman tag localhost/${{ env.IMAGE_NAME }} ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
       - name: Push Image
-        run: podman push ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+        run: podman push ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
