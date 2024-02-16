@@ -6,6 +6,8 @@ env:
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: ${{ github.repository }}
+  TAG: ${{ github.ref }}
 
 jobs:
   build:
@@ -24,3 +26,7 @@ jobs:
 
       - name: Build Image
         run: podman load --input $(nix build .#image --print-out-paths)
+      - name: Tag Image
+        run: podman tag localhost/${{ IMAGE_NAME }} ${{ IMAGE_REGISTRY }}/${{ IMAGE_NAME }}:${{ TAG }}
+      - name: Push Image
+        run: podman push ${{ IMAGE_REGISTRY }}/${{ IMAGE_NAME }}:${{ TAG }}
