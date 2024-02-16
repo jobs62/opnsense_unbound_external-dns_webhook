@@ -60,7 +60,7 @@
         });
 
         opnsense_unbound_external-dns_webhook-image = pkgs.dockerTools.buildImage {
-          name = "ghcr.io/jobs62/jobsopnsense_unbound_external-dns_webhook";
+          name = "ghcr.io/jobs62/opnsense_unbound_external-dns_webhook";
           config = {
             Cmd = [ "${opnsense_unbound_external-dns_webhook}/bin/opnsense_unbound_external-dns_webhook" ];
           };

@@ -32,4 +32,6 @@ jobs:
         run: docker load --input $(nix build .#image --print-out-paths)
 
       - name: Push Image
-        run: docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        run: |
+          docker image ls
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
