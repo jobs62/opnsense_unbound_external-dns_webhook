@@ -1,0 +1,17 @@
+[package]
+name = "opnsense_unbound_external-dns_webhook"
+version = "0.1.0"
+edition = "2021"
+description = "opnsense unbound external-dns webhook"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+axum = "0.7.4"
+figment = { version = "0.10.14", features = ["yaml", "env"] }
+reqwest = { version = "0.11.24", features = ["json"] }
+serde = { version = "1.0.196", features = ["derive"] }
+serde_json = "1.0.113"
+tokio = { version = "1.36.0", features = ["full"] }
+tower-http = { version = "0.5.1", features = ["trace"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
