@@ -19,7 +19,7 @@ sources:
   - service
 sidecars:
   - name: opnsense-unbound-external-dns-webhook
-    image: ghcr.io/jobs62/opnsense_unbound_external-dns_webhook:2dxnd8p90dpgnndry7cn20xb8p3pxjh3
+    image: ghcr.io/jobs62/opnsense_unbound_external-dns_webhook:v0.1.0
     ports:
       - containerPort: 8800
         name: http
