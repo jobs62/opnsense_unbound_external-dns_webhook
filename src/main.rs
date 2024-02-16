@@ -210,8 +210,8 @@ async fn set_records(
         .map(|c| opnsense::OpnsenseSeachResultInner::from(c.clone()))
     {
         let guard = state.uuid_map.lock().await;
-        if let Some(ref uuid) = guard.get(&ep.domain) {
-            if let Err(e) = opnsense::update(&state, &uuid, &ep).await {
+        if let Some(uuid) = guard.get(&ep.domain) {
+            if let Err(e) = opnsense::update(&state, uuid, &ep).await {
                 tracing::error!("update: {:?}", e);
                 return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
@@ -223,8 +223,8 @@ async fn set_records(
 
     for ep in changes.delete.0.iter() {
         let mut guard = state.uuid_map.lock().await;
-        if let Some(ref uuid) = guard.get(&ep.dns_name) {
-            opnsense::delete(&state, &uuid)
+        if let Some(uuid) = guard.get(&ep.dns_name) {
+            opnsense::delete(&state, uuid)
                 .await
                 .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
             let _ = guard.remove(&ep.dns_name);
