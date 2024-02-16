@@ -6,7 +6,7 @@ env:
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: opnsense_unbound_external-dns_webhook
   TAG: ${{ github.ref }}
 
 jobs:
