@@ -120,7 +120,7 @@ async fn main() {
         .certificate_bundle
         .as_ref()
         .map(|b| reqwest::Certificate::from_pem_bundle(b).unwrap())
-        .unwrap_or_else(Vec::new);
+        .unwrap_or_default();
 
     let addr = config
         .bind
