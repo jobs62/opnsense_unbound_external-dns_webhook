@@ -74,6 +74,8 @@ struct Config {
     domain_filters: Vec<String>,
     #[serde(default)]
     allow_invalid_certs: bool,
+    #[serde(default)]
+    certificate_bundle: Option<Vec<u8>>,
 }
 
 struct AppState {
@@ -114,6 +116,12 @@ async fn main() {
         .extract()
         .unwrap();
 
+    let certificats = config
+        .certificate_bundle
+        .as_ref()
+        .map(|b| reqwest::Certificate::from_pem_bundle(b).unwrap())
+        .unwrap_or_else(Vec::new);
+
     let addr = config
         .bind
         .as_deref()
@@ -122,11 +130,15 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
+    let mut builder =
+        reqwest::Client::builder().danger_accept_invalid_certs(config.allow_invalid_certs);
+
+    for c in certificats.into_iter() {
+        builder = builder.add_root_certificate(c);
+    }
+
     let state = Arc::new(AppState {
-        client: reqwest::Client::builder()
-            .danger_accept_invalid_certs(config.allow_invalid_certs)
-            .build()
-            .unwrap(),
+        client: builder.build().unwrap(),
         config,
         uuid_map: Mutex::new(HashMap::new()),
     });
