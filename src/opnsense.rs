@@ -60,7 +60,7 @@ pub async fn list(
             "searchPhrase": "",
             "sort": {}
         }))
-        .basic_auth(&state.config.key, state.config.secret.as_ref())
+        .basic_auth(&state.config.key, Some(&state.config.secret))
         .send()
         .await
         .and_then(|r| r.error_for_status())?
@@ -79,7 +79,7 @@ pub async fn delete(state: &super::AppState, uuid: &str) -> Result<(), Box<dyn s
     state
         .client
         .post(url)
-        .basic_auth(&state.config.key, state.config.secret.as_ref())
+        .basic_auth(&state.config.key, Some(&state.config.secret))
         .json(&json!({}))
         .send()
         .await
@@ -104,7 +104,7 @@ pub async fn create(
         .json(&serde_json::json!({
             "host": host
         }))
-        .basic_auth(&state.config.key, state.config.secret.as_ref())
+        .basic_auth(&state.config.key, Some(&state.config.secret))
         .send()
         .await
         .and_then(|r| r.error_for_status())?
@@ -130,7 +130,7 @@ pub async fn update(
         .json(&serde_json::json!({
             "host": host
         }))
-        .basic_auth(&state.config.key, state.config.secret.as_ref())
+        .basic_auth(&state.config.key, Some(&state.config.secret))
         .send()
         .await
         .and_then(|r| r.error_for_status())?;

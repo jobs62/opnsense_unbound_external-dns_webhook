@@ -63,19 +63,24 @@ struct Changes {
     delete: Endpoints,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug)]
 struct Config {
     key: String,
-    secret: Option<String>,
+    secret: String,
     #[serde(deserialize_with = "from_str_deserialize")]
     base: reqwest::Url,
-    bind: Option<String>,
+    #[serde(default = "default_bind")]
+    bind: String,
     #[serde(default)]
     domain_filters: Vec<String>,
     #[serde(default)]
     allow_invalid_certs: bool,
-    #[serde(default)]
-    certificate_bundle: Option<Vec<u8>>,
+    #[serde(deserialize_with = "deserialize_certificate")]
+    certificate_bundle: Vec<reqwest::Certificate>,
+}
+
+fn default_bind() -> String {
+    "127.0.0.1:8800".to_owned()
 }
 
 struct AppState {
@@ -103,6 +108,16 @@ where
     Ok(opt.unwrap_or_default())
 }
 
+fn deserialize_certificate<'de, D>(deserializer: D) -> Result<Vec<reqwest::Certificate>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(match Option::deserialize(deserializer)? {
+        None => Vec::new(),
+        Some(b) => reqwest::Certificate::from_pem_bundle(b).map_err(de::Error::custom)?,
+    })
+}
+
 #[tokio::main]
 async fn main() {
     let collector = tracing_subscriber::fmt()
@@ -116,25 +131,14 @@ async fn main() {
         .extract()
         .unwrap();
 
-    let certificats = config
-        .certificate_bundle
-        .as_ref()
-        .map(|b| reqwest::Certificate::from_pem_bundle(b).unwrap())
-        .unwrap_or_default();
-
-    let addr = config
-        .bind
-        .as_deref()
-        .unwrap_or("127.0.0.1:8800")
-        .to_owned();
-
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&config.bind).await.unwrap();
+    tracing::info!("listening on {}", &config.bind);
 
     let mut builder =
         reqwest::Client::builder().danger_accept_invalid_certs(config.allow_invalid_certs);
 
-    for c in certificats.into_iter() {
-        builder = builder.add_root_certificate(c);
+    for c in config.certificate_bundle.iter() {
+        builder = builder.add_root_certificate(c.clone());
     }
 
     let state = Arc::new(AppState {
@@ -155,8 +159,6 @@ async fn main() {
                 .on_request(trace::DefaultOnRequest::new().level(tracing::Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(tracing::Level::INFO)),
         );
-
-    tracing::info!("listening on {}", addr);
 
     axum::serve(listener, app).await.unwrap();
 }
@@ -314,5 +316,3 @@ where
         }
     }
 }
-
-//19207L
