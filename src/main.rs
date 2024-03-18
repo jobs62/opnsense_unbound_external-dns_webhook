@@ -75,7 +75,7 @@ struct Config {
     domain_filters: Vec<String>,
     #[serde(default)]
     allow_invalid_certs: bool,
-    #[serde(deserialize_with = "deserialize_certificate")]
+    #[serde(deserialize_with = "deserialize_certificate", default)]
     certificate_bundle: Vec<reqwest::Certificate>,
 }
 
@@ -112,9 +112,11 @@ fn deserialize_certificate<'de, D>(deserializer: D) -> Result<Vec<reqwest::Certi
 where
     D: Deserializer<'de>,
 {
-    Ok(match Option::deserialize(deserializer)? {
+    Ok(match Option::<String>::deserialize(deserializer)? {
         None => Vec::new(),
-        Some(b) => reqwest::Certificate::from_pem_bundle(b).map_err(de::Error::custom)?,
+        Some(b) => {
+            reqwest::Certificate::from_pem_bundle(b.as_bytes()).map_err(de::Error::custom)?
+        }
     })
 }
 
