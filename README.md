@@ -2,9 +2,9 @@
 
 Webhook allowing external-dns to drive opnsense's unbound service
 
-** This is very dodgy code and i have very little time to take care of it. use it at your own risk **
+  **This is very dodgy code and i have very little time to take care of it. use it at your own risk**
 
-### example of values.yaml used with Bitnami's helm chart for external dns
+## example of values.yaml used with Bitnami's helm chart for external dns
 
 ```yaml
 provider: webhook
@@ -19,22 +19,10 @@ sources:
   - service
 sidecars:
   - name: opnsense-unbound-external-dns-webhook
-    image: ghcr.io/jobs62/opnsense_unbound_external-dns_webhook:v0.1.0
+    image: ghcr.io/jobs62/opnsense_unbound_external-dns_webhook:v0.1.3-rc1
     ports:
       - containerPort: 8800
         name: http
-    livenessProbe:
-      httpGet:
-        path: /healthz
-        port: http
-      initialDelaySeconds: 10
-      timeoutSeconds: 5
-    readinessProbe:
-      httpGet:
-        path: /healthz
-        port: http
-      initialDelaySeconds: 10
-      timeoutSeconds: 5
     env:
       - name: OPNSENSE_BASE
         value: "https://10.62.62.1/"
@@ -52,4 +40,4 @@ sidecars:
           secretKeyRef:
             name: opnsense
             key: secret
-``````
+```
