@@ -137,3 +137,19 @@ pub async fn update(
 
     Ok(())
 }
+
+#[instrument(skip(state))]
+pub async fn restart(state: &super::AppState) -> Result<(), Box<dyn std::error::Error>> {
+    let url = state.config.base.join("api/unbound/service/restart")?;
+
+    state
+        .client
+        .post(url)
+        .json(&serde_json::json!({}))
+        .basic_auth(&state.config.key, Some(&state.config.secret))
+        .send()
+        .await
+        .and_then(|r| r.error_for_status())?;
+
+    Ok(())
+}

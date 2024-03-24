@@ -1,6 +1,6 @@
 [package]
 name = "opnsense_unbound_external-dns_webhook"
-version = "0.1.3-rc1"
+version = "0.1.3"
 edition = "2021"
 description = "opnsense unbound external-dns webhook"
 

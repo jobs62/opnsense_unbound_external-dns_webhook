@@ -205,6 +205,8 @@ async fn set_records(
     State(state): State<Arc<AppState>>,
     Json(changes): Json<Changes>,
 ) -> Result<StatusCode, StatusCode> {
+    let mut need_restart = false;
+
     for ep in changes
         .create
         .0
@@ -217,6 +219,7 @@ async fn set_records(
 
         let mut guard = state.uuid_map.lock().await;
         guard.insert(ep.domain.clone(), res.uuid);
+        need_restart = true;
     }
 
     for ep in changes
@@ -230,6 +233,8 @@ async fn set_records(
             if let Err(e) = opnsense::update(&state, uuid, &ep).await {
                 tracing::error!("update: {:?}", e);
                 return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            } else {
+                need_restart = true;
             }
         } else {
             tracing::error!("update: could not find uuid in map: {:?}", &ep.domain);
@@ -244,10 +249,15 @@ async fn set_records(
                 .await
                 .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
             let _ = guard.remove(&ep.dns_name);
+            need_restart = true;
         } else {
             tracing::error!("delete: could not find uuid in map");
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
+    }
+
+    if need_restart {
+        let _ = opnsense::restart(&state).await;
     }
 
     Ok(StatusCode::NO_CONTENT)
