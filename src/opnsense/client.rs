@@ -18,7 +18,7 @@ struct ClientAuth {
 }
 
 impl TryFrom<&Config> for Client {
-    type Error = Box<dyn std::error::Error>;
+    type Error = anyhow::Error;
 
     fn try_from(config: &Config) -> std::result::Result<Self, Self::Error> {
         let mut builder =
@@ -45,6 +45,17 @@ impl Client {
             base_url: self.base_url.join(path)?,
             ..self.clone()
         })
+    }
+    pub async fn get<M: Method>(&self, path: &str) -> Result<M::Response> {
+        Ok(self
+            .client
+            .get(self.base_url.join(path).unwrap())
+            .basic_auth(&self.auth.key, Some(&self.auth.secret))
+            .send()
+            .await
+            .and_then(|r| r.error_for_status())?
+            .json::<M::Response>()
+            .await?)
     }
     pub async fn post<M: Method>(&self, path: &str, json: Value) -> Result<M::Response> {
         Ok(self

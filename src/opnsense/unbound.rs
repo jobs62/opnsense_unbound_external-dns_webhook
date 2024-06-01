@@ -1,4 +1,3 @@
-use crate::external_dns::Endpoint;
 use crate::opnsense::client::Method;
 use crate::opnsense::{Client, Result};
 use serde::{Deserialize, Serialize};
@@ -13,6 +12,11 @@ impl Unbound {
             client: client.with_path("unbound/").unwrap(),
         }
     }
+    pub fn diagnostics(&self) -> Diagnostics {
+        Diagnostics {
+            client: self.client.with_path("diagnostics/").unwrap(),
+        }
+    }
     pub fn settings(&self) -> Settings {
         Settings {
             client: self.client.with_path("settings/").unwrap(),
@@ -22,6 +26,45 @@ impl Unbound {
         Service {
             client: self.client.with_path("service/").unwrap(),
         }
+    }
+}
+
+pub struct Diagnostics {
+    client: Client,
+}
+
+impl Diagnostics {
+    pub async fn list_local_zones(&self) -> Result<ListLocalZonesResponse> {
+        self.client
+            .get::<ListLocalZonesMethod>("listlocalzones/")
+            .await
+    }
+}
+
+struct ListLocalZonesMethod;
+
+impl Method for ListLocalZonesMethod {
+    type Response = ListLocalZonesResponse;
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ListLocalZonesResponse {
+    pub status: String,
+    pub data: Vec<Zone>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Zone {
+    pub zone: String,
+    pub r#type: String,
+}
+
+impl Zone {
+    // This restricts zone types to those which correspond to
+    // the system domain or host overrides. This could be
+    // made user configurable in the future with sane defaults.
+    pub fn is_allowed_type(&self) -> bool {
+        self.r#type.trim().to_lowercase() == "transparent"
     }
 }
 
@@ -46,7 +89,7 @@ impl Settings {
 
         match res {
             SettingsResponse::List(res) => Ok(res),
-            _ => Err("invalid response format".into()),
+            _ => Err(anyhow::anyhow!("invalid response format")),
         }
     }
     pub async fn delete_host_override(&self, uuid: &str) -> Result<SettingsUpdateResponse> {
@@ -57,10 +100,13 @@ impl Settings {
 
         match res {
             SettingsResponse::Update(res) => Ok(res),
-            _ => Err("invalid response format".into()),
+            _ => Err(anyhow::anyhow!("invalid response format")),
         }
     }
-    pub async fn add_host_override(&self, host: &Row) -> Result<SettingsAddResponse> {
+    pub async fn add_host_override(
+        &self,
+        host: &HostOverrideRecord,
+    ) -> Result<SettingsAddResponse> {
         let res = self
             .client
             .post::<SettingsMethod>(
@@ -73,13 +119,13 @@ impl Settings {
 
         match res {
             SettingsResponse::Add(res) => Ok(res),
-            _ => Err("invalid response format".into()),
+            _ => Err(anyhow::anyhow!("invalid response format")),
         }
     }
     pub async fn set_host_override(
         &self,
         uuid: &str,
-        host: &Row,
+        host: &HostOverrideRecord,
     ) -> Result<SettingsUpdateResponse> {
         let res = self
             .client
@@ -93,7 +139,7 @@ impl Settings {
 
         match res {
             SettingsResponse::Update(res) => Ok(res),
-            _ => Err("invalid response format".into()),
+            _ => Err(anyhow::anyhow!("invalid response format")),
         }
     }
 }
@@ -119,11 +165,23 @@ pub struct SettingsAddResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct SettingsListResponse {
-    pub rows: Vec<Row>,
+    pub rows: HostOverrideRecords,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct Row {
+pub struct HostOverrideRecords(Vec<HostOverrideRecord>);
+
+impl IntoIterator for HostOverrideRecords {
+    type Item = HostOverrideRecord;
+    type IntoIter = std::vec::IntoIter<HostOverrideRecord>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct HostOverrideRecord {
     #[serde(skip_serializing)]
     pub uuid: String,
     pub enabled: String,
@@ -134,22 +192,6 @@ pub struct Row {
     pub mx: String,
     pub mxprio: String,
     pub description: String,
-}
-
-impl From<Endpoint> for Row {
-    fn from(value: Endpoint) -> Self {
-        Row {
-            uuid: value.set_identifier.unwrap_or_default(),
-            enabled: "1".to_string(),
-            domain: value.dns_name,
-            rr: value.record_type,
-            server: value.targets.0.first().cloned().unwrap_or_default(),
-            hostname: "*".to_string(),
-            mx: "".to_string(),
-            mxprio: "".to_string(),
-            description: "".to_string(),
-        }
-    }
 }
 
 #[derive(Deserialize, Debug)]

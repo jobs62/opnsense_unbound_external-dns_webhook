@@ -6,12 +6,26 @@ use axum::{
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Debug)]
-pub struct Filters {
+pub struct DomainFilter {
     pub filters: Vec<String>,
 }
-
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Endpoints(pub Vec<Endpoint>);
+
+impl IntoIterator for Endpoints {
+    type Item = Endpoint;
+    type IntoIter = std::vec::IntoIter<Endpoint>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl FromIterator<Endpoint> for Endpoints {
+    fn from_iter<T: IntoIterator<Item = Endpoint>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -28,10 +42,10 @@ pub struct Endpoint {
     pub provider_specific: Vec<ProviderSpecificProperty>,
 }
 
-impl From<unbound::Row> for Endpoint {
-    fn from(value: unbound::Row) -> Endpoint {
+impl From<unbound::HostOverrideRecord> for Endpoint {
+    fn from(value: unbound::HostOverrideRecord) -> Endpoint {
         Endpoint {
-            dns_name: value.domain.clone(),
+            dns_name: format!("{}.{}", value.hostname, value.domain),
             set_identifier: None,
             record_type: value
                 .rr
@@ -45,8 +59,63 @@ impl From<unbound::Row> for Endpoint {
     }
 }
 
+impl Endpoint {
+    pub fn get_record_for_zones<'a>(
+        &self,
+        zones: impl IntoIterator<Item = &'a String>,
+    ) -> Option<unbound::HostOverrideRecord> {
+        let (host, domain) = self.get_host_and_domain(zones)?;
+
+        Some(unbound::HostOverrideRecord {
+            uuid: self.set_identifier.clone().unwrap_or_default(),
+            enabled: "1".to_string(),
+            domain: domain.clone(),
+            rr: self.record_type.clone(),
+            server: self.targets[0].clone(),
+            hostname: host.clone(),
+            mx: "".to_string(),
+            mxprio: "".to_string(),
+            description: "".to_string(),
+        })
+    }
+    fn get_host_and_domain<'a>(
+        &self,
+        zones: impl IntoIterator<Item = &'a String>,
+    ) -> Option<(String, String)> {
+        self.dns_name
+            .split_once('.')
+            .map(|(host, domain)| (host.into(), domain.into()))
+            .filter(|(_, domain)| zones.into_iter().any(|z| z == domain))
+    }
+}
+
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct Targets(pub Vec<String>);
+
+impl From<&String> for Targets {
+    fn from(value: &String) -> Self {
+        Self(vec![value.clone()])
+    }
+}
+
+impl<I> std::ops::Index<I> for Targets
+where
+    I: std::slice::SliceIndex<[String]>,
+{
+    type Output = I::Output;
+    fn index(&self, index: I) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IntoIterator for Targets {
+    type Item = String;
+    type IntoIter = std::vec::IntoIter<String>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ProviderSpecificProperty {
