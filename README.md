@@ -41,3 +41,7 @@ sidecars:
             name: opnsense
             key: secret
 ```
+
+## Thanks
+
+- Ajpantuso
