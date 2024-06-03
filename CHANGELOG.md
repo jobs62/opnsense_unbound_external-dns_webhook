@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.3.0...v0.3.1) (2024-06-03)
+
+
+### Bug Fixes
+
+* Release macanismes ([#19](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/issues/19)) ([e39d6d0](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/commit/e39d6d05e9acd704463121034556437e2c099e91))
+
 ## [0.2.0-rc1](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.1.3-rc1...v0.2.0-rc1) (2024-03-24)
 
 
