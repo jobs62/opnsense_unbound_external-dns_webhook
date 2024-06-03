@@ -2,5 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
-  ]
+  ],
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 10am"],
+    "automerge": true
+  },
 }
