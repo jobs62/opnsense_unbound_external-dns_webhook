@@ -667,7 +667,7 @@ dependencies = [
 
 [[package]]
 name = "opnsense_unbound_external-dns_webhook"
-version = "0.2.0-rc1"
+version = "0.3.0"
 dependencies = [
  "axum",
  "figment",
