@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.3.1...v0.4.0) (2024-06-06)
+
+
+### Features
+
+* enable dynamic zone discovery and restrict records to those zones ([#29](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/issues/29)) ([326be28](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/commit/326be288cce197b3fe5db3514731eada098d4d5b))
+
 ## [0.3.1](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.3.0...v0.3.1) (2024-06-03)
 
 
