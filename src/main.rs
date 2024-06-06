@@ -1,7 +1,7 @@
 use opnsense_unbound_external_dns_webhook::{config::Config, Server};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     let collector = tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .finish();

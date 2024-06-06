@@ -5,7 +5,7 @@ pub mod unbound;
 use client::Client;
 use unbound::Unbound;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+type Result<T> = anyhow::Result<T>;
 
 #[derive(Clone)]
 pub struct Opnsense {
@@ -19,7 +19,7 @@ impl Opnsense {
 }
 
 impl TryFrom<&Config> for Opnsense {
-    type Error = Box<dyn std::error::Error>;
+    type Error = anyhow::Error;
 
     fn try_from(config: &Config) -> std::result::Result<Self, Self::Error> {
         Ok(Self {
