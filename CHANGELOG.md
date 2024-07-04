@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.4.0...v0.4.1) (2024-07-04)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate serde_json to v1.0.119 ([#99](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/issues/99)) ([b49708a](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/commit/b49708a9ad20415eb067e449e6321cd17ee8d40d))
+* **deps:** update rust crate serde_json to v1.0.120 ([#121](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/issues/121)) ([4bff49f](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/commit/4bff49f261efba3909768c0ebcbedd479684cf73))
+
 ## [0.4.0](https://github.com/jobs62/opnsense_unbound_external-dns_webhook/compare/v0.3.1...v0.4.0) (2024-06-06)
 
 
