@@ -2,11 +2,8 @@
   description = "opnsense unbound external-dns webhook";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
-    crane = {
-        url = "github:ipetkov/crane";
-        inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "github:nixos/nixpkgs";
+    crane.url = "github:ipetkov/crane";
 
     fenix = {
       url = "github:nix-community/fenix";
@@ -19,9 +16,14 @@
       url = "github:rustsec/advisory-db";
       flake = false;
     };
+
+    nix2container = {
+      url = "github:nlewo/nix2container";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, crane, fenix, flake-utils, advisory-db }:
+  outputs = { self, nixpkgs, crane, fenix, flake-utils, advisory-db, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -30,8 +32,9 @@
 
         inherit (pkgs) lib;
 
-        craneLib = crane.lib.${system};
+        craneLib = crane.mkLib pkgs;
         src = craneLib.cleanCargoSource (craneLib.path ./.);
+        nix2containerPkgs = nix2container.packages.${system};
 
         commonArgs = {
           inherit src;
@@ -59,8 +62,9 @@
             inherit cargoArtifacts;
         });
 
-        opnsense_unbound_external-dns_webhook-image = pkgs.dockerTools.buildImage {
+        opnsense_unbound_external-dns_webhook-image = nix2containerPkgs.nix2container.buildImage {
           name = "ghcr.io/jobs62/opnsense_unbound_external-dns_webhook";
+          tag = opnsense_unbound_external-dns_webhook.version;
           config = {
             Cmd = [ "${opnsense_unbound_external-dns_webhook}/bin/opnsense_unbound_external-dns_webhook" ];
           };

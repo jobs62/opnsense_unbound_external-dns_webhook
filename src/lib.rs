@@ -69,9 +69,7 @@ async fn negotiate<R: RecordCache, Z: ZoneCache>(
 
     tracing::info!(?zones, "replying with filtered zones");
 
-    Ok(Edns(DomainFilter {
-        filters: state.zone_cache.read().await.values(),
-    }))
+    Ok(Edns(DomainFilter { filters: zones }))
 }
 
 #[instrument(skip(_state))]
@@ -110,7 +108,10 @@ async fn get_records<R: RecordCache, Z: ZoneCache>(
     drop(guard);
 
     Ok(Edns(Endpoints::from_iter(
-        records.filter(|r| r.enabled == "1").map(Into::into),
+        records
+            .filter(|r| r.enabled == "1")
+            .map(Into::into)
+            .inspect(|f: &Endpoint| tracing::info!("records: {:?}", f)),
     )))
 }
 
@@ -341,17 +342,24 @@ async fn adjust_records<R: RecordCache, Z: ZoneCache>(
     State(_state): State<AppState<R, Z>>,
     Json(endpoints): Json<Endpoints>,
 ) -> Result<Edns<Endpoints>, StatusCode> {
-    Ok(Edns(
-        endpoints
-            .into_iter()
-            .filter(|ep| ["A", "AAAA"].contains(&ep.record_type.as_str()))
-            .map(|ep| Endpoint {
-                record_ttl: None,
-                targets: (&ep.targets[0]).into(),
-                ..ep.clone()
-            })
-            .collect(),
-    ))
+    let records: Endpoints = endpoints
+        .0
+        .iter()
+        .filter(|ep| ["A", "AAAA"].contains(&ep.record_type.as_str()))
+        .map(|ep| Endpoint {
+            record_ttl: None,
+            targets: (&ep.targets[0]).into(),
+            ..ep.clone()
+        })
+        .collect();
+
+    tracing::info!(
+        "records_requested: {}, records_adjusted: {}",
+        endpoints.0.len(),
+        records.0.len()
+    );
+
+    Ok(Edns(records))
 }
 
 // zones retrieves zones from Opnsense, filters,
@@ -379,12 +387,15 @@ async fn zones<R: RecordCache, Z: ZoneCache>(
         .filter_map(|z| z.is_allowed_type().then_some(&z.zone))
         .flat_map(|z| z.strip_suffix('.'))
         .filter(|z| {
+            //Note: FIXME: this filter implie that local zones are more restrictive than
+            // the domain_filters configures
             filters.is_empty()
                 || filters
                     .iter()
                     .map(|f| f.strip_prefix('.').unwrap_or(f))
                     .any(|f| z.ends_with(f))
         })
+        .filter(|z| z.is_empty())
         .map(Into::into)
         .collect::<Vec<String>>();
 

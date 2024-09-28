@@ -49,7 +49,7 @@ impl Method for ListLocalZonesMethod {
 
 #[derive(Deserialize, Debug)]
 pub struct ListLocalZonesResponse {
-    pub status: String,
+    //pub status: String,
     pub data: Vec<Zone>,
 }
 
@@ -196,7 +196,7 @@ pub struct HostOverrideRecord {
 
 #[derive(Deserialize, Debug)]
 pub struct SettingsUpdateResponse {
-    pub result: String,
+    //pub result: String,
 }
 
 pub struct Service {
@@ -230,5 +230,5 @@ pub enum ServiceResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct ServiceRestartResponse {
-    pub response: Vec<String>,
+    //pub response: Vec<String>,
 }

@@ -107,7 +107,7 @@ impl TryFrom<String> for RecordType {
 #[derive(Clone, Debug)]
 pub struct RecordEntry {
     pub uuid: String,
-    pub server: String,
+    //pub server: String,
     pub enabled: bool,
 }
 
@@ -116,7 +116,7 @@ impl TryFrom<&HostOverrideRecord> for RecordEntry {
     fn try_from(value: &HostOverrideRecord) -> Result<Self, Self::Error> {
         Ok(RecordEntry {
             uuid: value.uuid.clone(),
-            server: value.server.clone(),
+            //server: value.server.clone(),
             enabled: match value.enabled.trim() {
                 "0" => false,
                 "1" => true,

@@ -28,33 +28,5 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.6.0
-
-      - id: docker_meta
-        uses: docker/metadata-action@v5.5.1
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=sha,format=long
-
       - name: Build Image
-        run: docker load --input $(nix build .#image --print-out-paths)
-
-      - name: Push Image
-        run: |
-          export NIXTAG="$(docker image ls ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | tail -n1 | awk -F' ' '{print $2}')"
-          echo $NIXTAG
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${NIXTAG} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${NIXTAG} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Sign the images with GitHub OIDC Token
-        env:
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-          TAGS: ${{ steps.docker_meta.outputs.tags }}
-        run: |
-          images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes -a GITHUB_SHA="${GITHUB_SHA}" -a GITHUB_RUN_ID="${GITHUB_RUN_ID}" ${images}
+        run: nix run .#image.copyToRegistry
