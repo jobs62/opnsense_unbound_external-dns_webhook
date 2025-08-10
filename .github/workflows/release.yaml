@@ -32,7 +32,7 @@ jobs:
         uses: sigstore/cosign-installer@v3.7.0
 
       - id: docker_meta
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.8.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: type=sha,format=long
