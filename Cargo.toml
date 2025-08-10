@@ -7,7 +7,7 @@ description = "opnsense unbound external-dns webhook"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 anyhow = "1.0.86"
-axum = "0.7.4"
+axum = "0.8.0"
 figment = { version = "0.10", features = ["yaml", "env"] }
 reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
