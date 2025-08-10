@@ -1,3 +1,11 @@
+> ⚠️ **Deprecation Notice**  
+>
+> This repository (`jobs62/opnsense_unbound_external-dns_webhook`) is **no longer maintained**.
+>
+> We highly recommend migrating to a actively maintained alternative at [@crutonjohn/external-dns-opnsense-webhook](https://github.com/crutonjohn/external-dns-opnsense-webhook).
+>
+> Thank you for your support!
+
 # Opnsense Unbound External-DNS Webhook
 
 Webhook allowing external-dns to drive opnsense's unbound service
